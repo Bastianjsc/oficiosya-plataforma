@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -24,15 +24,32 @@ const Login = () => {
       const data = await response.json();
       
       if (response.ok && data.success) {
-        // Guardar el Token criptográfico en el almacenamiento del navegador
         localStorage.setItem('token', data.token);
-        // Guardar los datos básicos del usuario
-        localStorage.setItem('usuario', JSON.stringify(data.data));
         
-        setMensaje({ texto: '¡Bienvenido!', tipo: 'success' });
-        
-        // Redirigir al inicio después de 1 segundo
-        setTimeout(() => navigate('/'), 1000);
+        // Guardar el nombre si el backend lo devuelve, o extraerlo del payload/token
+        if (data.nombre) {
+          localStorage.setItem('nombreUsuario', data.nombre);
+        } else {
+          localStorage.setItem('nombreUsuario', 'Mi Cuenta');
+        }
+
+        const payloadToken = JSON.parse(atob(data.token.split('.')[1]));
+        const rolUsuario = payloadToken.rol;
+
+        setMensaje({ texto: '¡Bienvenido! Redirigiendo a tu panel...', tipo: 'success' });
+
+        setTimeout(() => {
+          if (rolUsuario === 'Cliente') {
+            navigate('/cliente');
+          } else if (rolUsuario === 'Prestador') {
+            navigate('/prestador');
+          } else if (rolUsuario === 'Admin') {
+            navigate('/admin');
+          } else {
+            navigate('/');
+          }
+        }, 1000);
+
       } else {
         setMensaje({ texto: data.message || 'Credenciales inválidas.', tipo: 'error' });
       }
@@ -42,12 +59,11 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center py-16 px-6">
+    <div className="flex justify-center items-center py-12 px-6 bg-[#f5f1ea] min-h-screen">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-200">
-        <h2 className="text-3xl font-extrabold text-[#1b3b2c] mb-2 text-center">
-          Iniciar Sesión
+        <h2 className="text-3xl font-extrabold text-[#1b3b2c] mb-6 text-center">
+          Iniciar Sesión en OficiosYa
         </h2>
-        <p className="text-gray-500 text-center mb-6">Ingresa a tu cuenta de OficiosYa</p>
         
         {mensaje.texto && (
           <div className={`p-3 mb-4 rounded-md text-sm font-medium ${mensaje.tipo === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -55,7 +71,7 @@ const Login = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-gray-700 font-semibold mb-1">Correo Electrónico</label>
             <input 
@@ -63,8 +79,7 @@ const Login = () => {
               name="email" 
               required 
               onChange={handleChange}
-              className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-3 rounded-md outline-none focus:border-[#1b3b2c] transition-colors"
-              placeholder="tu@correo.com"
+              className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-2 rounded-md outline-none focus:border-[#1b3b2c]"
             />
           </div>
 
@@ -75,25 +90,17 @@ const Login = () => {
               name="password" 
               required 
               onChange={handleChange}
-              className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-3 rounded-md outline-none focus:border-[#1b3b2c] transition-colors"
-              placeholder="••••••••"
+              className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-2 rounded-md outline-none focus:border-[#1b3b2c]"
             />
           </div>
 
           <button 
             type="submit" 
-            className="w-full bg-[#1b3b2c] hover:bg-opacity-90 text-white font-bold py-3 rounded-md transition-all mt-4"
+            className="w-full bg-[#1b3b2c] hover:bg-opacity-90 text-white font-bold py-3 rounded-md transition-all mt-6"
           >
-            Ingresar
+            Entrar a la plataforma
           </button>
         </form>
-
-        <div className="mt-6 text-center text-gray-600 text-sm">
-          ¿No tienes una cuenta?{' '}
-          <Link to="/registro" className="text-[#1b3b2c] font-bold hover:underline">
-            Regístrate aquí
-          </Link>
-        </div>
       </div>
     </div>
   );

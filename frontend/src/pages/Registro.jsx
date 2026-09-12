@@ -1,14 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Registro = () => {
+  const [listaOficios, setListaOficios] = useState([]);
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
     password: '',
     rol: 'Cliente',
-    oficio: '' // Solo se usa si es prestador
+    oficio: ''
   });
+  
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
+  const navigate = useNavigate();
+
+  // Cargar los oficios desde la ruta pública del backend de forma dinámica
+  useEffect(() => {
+    fetch('http://localhost:5000/api/auth/oficios')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.oficios.length > 0) {
+          setListaOficios(data.oficios);
+          setFormData(prev => ({ ...prev, oficio: data.oficios[0] }));
+        }
+      })
+      .catch(err => console.log('Error cargando oficios', err));
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,10 +33,9 @@ const Registro = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMensaje({ texto: 'Procesando...', tipo: 'info' });
+    setMensaje({ texto: 'Registrando cuenta...', tipo: 'info' });
 
     try {
-      // Conexión con tu API REST local
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -29,8 +45,16 @@ const Registro = () => {
       const data = await response.json();
       
       if (response.ok && data.success) {
-        setMensaje({ texto: '¡Registro exitoso! Tu perfil ha sido creado.', tipo: 'success' });
-        // Aquí luego redirigiremos al Login
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('nombreUsuario', formData.nombre);
+        
+        if (formData.rol === 'Prestador') {
+          setMensaje({ texto: '¡Registro exitoso! Redirigiendo a carga de documentos...', tipo: 'success' });
+          setTimeout(() => navigate('/onboarding'), 1500);
+        } else {
+          setMensaje({ texto: '¡Registro exitoso! Redirigiendo a tu panel...', tipo: 'success' });
+          setTimeout(() => navigate('/cliente'), 1500);
+        }
       } else {
         setMensaje({ texto: data.message || 'Error al registrar.', tipo: 'error' });
       }
@@ -40,10 +64,10 @@ const Registro = () => {
   };
 
   return (
-    <div className="flex justify-center items-center py-12 px-6">
+    <div className="flex justify-center items-center py-12 px-6 bg-[#f5f1ea] min-h-screen">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-200">
         <h2 className="text-3xl font-extrabold text-[#1b3b2c] mb-6 text-center">
-          Únete a OficiosYa
+          Registro en OficiosYa
         </h2>
         
         {mensaje.texto && (
@@ -87,29 +111,30 @@ const Registro = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-1">¿Cómo usarás la plataforma?</label>
+            <label className="block text-gray-700 font-semibold mb-1">Tipo de Usuario</label>
             <select 
               name="rol" 
               onChange={handleChange}
               className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-2 rounded-md outline-none focus:border-[#1b3b2c]"
             >
-              <option value="Cliente">Busco contratar servicios (Cliente)</option>
-              <option value="Prestador">Quiero ofrecer mis servicios (Prestador)</option>
+              <option value="Cliente">Cliente (Busco servicios)</option>
+              <option value="Prestador">Prestador (Ofrezco servicios)</option>
             </select>
           </div>
 
-          {/* Campo condicional: Solo aparece si el rol es 'Prestador' */}
           {formData.rol === 'Prestador' && (
             <div>
-              <label className="block text-gray-700 font-semibold mb-1">Tu Oficio Principal</label>
-              <input 
-                type="text" 
+              <label className="block text-gray-700 font-semibold mb-1">Selecciona tu Oficio Principal</label>
+              <select 
                 name="oficio" 
-                placeholder="Ej: Gasfitería, Electricidad..." 
-                required 
+                value={formData.oficio} 
                 onChange={handleChange}
                 className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-2 rounded-md outline-none focus:border-[#1b3b2c]"
-              />
+              >
+                {listaOficios.map((oficioItem, index) => (
+                  <option key={index} value={oficioItem}>{oficioItem}</option>
+                ))}
+              </select>
             </div>
           )}
 
@@ -117,7 +142,7 @@ const Registro = () => {
             type="submit" 
             className="w-full bg-[#1b3b2c] hover:bg-opacity-90 text-white font-bold py-3 rounded-md transition-all mt-6"
           >
-            Crear cuenta
+            Siguiente paso
           </button>
         </form>
       </div>

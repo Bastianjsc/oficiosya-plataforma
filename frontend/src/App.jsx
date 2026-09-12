@@ -4,6 +4,9 @@ import Home from './pages/Home';
 import Registro from './pages/Registro';
 import Login from './pages/Login'; 
 import Onboarding from './pages/Onboarding';
+import ClienteDashboard from './pages/ClienteDashboard';
+import PrestadorDashboard from './pages/PrestadorDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -16,6 +19,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/cliente" element={<ClienteDashboard />} />
+          <Route path="/prestador" element={<PrestadorDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="*" element={<Login />} />
         </Routes>
       </div>
     </BrowserRouter>

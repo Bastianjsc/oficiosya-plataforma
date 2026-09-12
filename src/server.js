@@ -10,9 +10,11 @@ const marketplaceRoutes = require('./routes/marketplace.routes');
 const app = express();
 connectDB();
 
+const path = require('path');
+
 app.use(cors());
 app.use(express.json());
-
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Declarar el uso de las rutas base
 app.use('/api/auth', authRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
