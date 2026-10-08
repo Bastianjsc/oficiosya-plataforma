@@ -10,7 +10,9 @@ const {
     obtenerPerfilActual,
     verificarPrestadorAdmin,
     eliminarUsuarioAdmin,
-    actualizarPerfilPrestador
+    actualizarPerfilPrestador,
+    obtenerPrestadoresPublicos,
+    obtenerPrestadorPorIdPublico
 } = require('../controllers/auth.controller');
 
 const { verificarToken } = require('../middlewares/auth.middleware');
@@ -21,9 +23,10 @@ const LISTA_OFICIOS = require('../data/oficios.data');
 router.get('/oficios', (req, res) => {
     res.status(200).json({ success: true, oficios: LISTA_OFICIOS });
 });
-
 router.post('/register', registrarUsuario);
 router.post('/login', loginUsuario);
+router.get('/prestadores-publicos', obtenerPrestadoresPublicos);
+router.get('/prestadores-publicos/:id', obtenerPrestadorPorIdPublico);
 
 // Rutas protegidas
 router.get('/users', verificarToken, obtenerUsuarios);
