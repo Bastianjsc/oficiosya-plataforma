@@ -28,9 +28,9 @@ const AdminDashboard = () => {
     }
 
     Promise.all([
-      fetch('${import.meta.env.VITE_API_URL}/api/auth/users', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()),
-      fetch('${import.meta.env.VITE_API_URL}/api/auth/oficios').then(res => res.json()),
-      fetch('${import.meta.env.VITE_API_URL}/api/auth/perfil', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
+      fetch(`${import.meta.env.VITE_API_URL}/api/auth/users`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()),
+      fetch(`${import.meta.env.VITE_API_URL}/api/auth/oficios`).then(res => res.json()),
+      fetch(`${import.meta.env.VITE_API_URL}/api/auth/perfil`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
     ])
       .then(([dataUsers, dataOficios, dataPerfil]) => {
         if (dataUsers.success) setUsuarios(Array.isArray(dataUsers.usuarios) ? dataUsers.usuarios : []);
