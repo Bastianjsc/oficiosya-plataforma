@@ -103,7 +103,7 @@ const PrestadorPublicoView = () => {
             <div className="flex flex-col sm:flex-row gap-6 items-start">
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200 border-4 border-[#e8c582] overflow-hidden flex-shrink-0 relative shadow-inner">
                 {prestador.fotoPerfil ? (
-                  <img src={prestador.fotoPerfil.startsWith('http') ? prestador.fotoPerfil : `http://localhost:5000/${prestador.fotoPerfil}`} alt="Perfil" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={prestador.fotoPerfil.startsWith('http') ? prestador.fotoPerfil : `${import.meta.env.VITE_API_URL}/${prestador.fotoPerfil}`} alt="Perfil" className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center font-extrabold text-4xl text-gray-500">{prestador.nombre.charAt(0)}</div>
                 )}

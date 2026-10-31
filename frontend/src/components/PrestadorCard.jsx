@@ -37,7 +37,7 @@ const PrestadorCard = ({ p, modoLocal, mapCenter, radioLocal }) => {
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 rounded-full bg-gray-200 border border-[#1b3b2c] overflow-hidden flex-shrink-0 relative">
             {p.fotoPerfil ? (
-              <img src={p.fotoPerfil.startsWith('http') ? p.fotoPerfil : `http://localhost:5000/${p.fotoPerfil}`} alt={p.nombre} className="absolute inset-0 w-full h-full object-cover" />
+              <img src={p.fotoPerfil.startsWith('http') ? p.fotoPerfil : `${import.meta.env.VITE_API_URL}/${p.fotoPerfil}`} alt={p.nombre} className="absolute inset-0 w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-xl font-bold">{p.nombre.charAt(0)}</div>
             )}

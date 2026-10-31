@@ -13,9 +13,9 @@ connectDB();
 const path = require('path');
 
 app.use(cors({
-  origin: '*', // Permite cualquier origen temporalmente
-  credentials: false // Se debe poner en false si usamos '*'
-}));
+  origin: process.env.FRONTEND_URL || 'https://oficiosya-frontend.vercel.app', // Vercel URL o Localhost
+  credentials: true
+}));    
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Declarar el uso de las rutas base

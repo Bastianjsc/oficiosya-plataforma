@@ -24,7 +24,7 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    fetch('${import.meta.env.VITE_API_URL}/api/auth/oficios')
+    fetch(`${import.meta.env.VITE_API_URL}/api/auth/oficios`)
       .then(res => res.json())
       .then(data => { if (data.success) setListaOficios(data.oficios); })
       .catch(err => console.error("Error cargando oficios:", err));

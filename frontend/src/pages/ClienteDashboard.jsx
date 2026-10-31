@@ -157,7 +157,7 @@ const ClienteDashboard = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gray-200 border border-gray-300 overflow-hidden flex-shrink-0 relative">
                           {sol.prestador?.fotoPerfil ? (
-                            <img src={sol.prestador.fotoPerfil.startsWith('http') ? sol.prestador.fotoPerfil : `http://localhost:5000/${sol.prestador.fotoPerfil}`} alt="Prestador" className="absolute inset-0 w-full h-full object-cover" />
+                            <img src={sol.prestador.fotoPerfil.startsWith('http') ? sol.prestador.fotoPerfil : `${import.meta.env.VITE_API_URL}/${sol.prestador.fotoPerfil}`} alt="Prestador" className="absolute inset-0 w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center font-bold text-gray-500">{sol.prestador?.nombre?.charAt(0)}</div>
                           )}

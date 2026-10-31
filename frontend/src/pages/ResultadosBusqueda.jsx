@@ -66,7 +66,7 @@ const ResultadosBusqueda = () => {
   }, []);
 
   useEffect(() => {
-    fetch('${import.meta.env.VITE_API_URL}/api/auth/oficios')
+    fetch(`${import.meta.env.VITE_API_URL}/api/auth/oficios`)
       .then(res => res.json())
       .then(data => { if(data.success) setListaOficios(data.oficios); })
       .catch(console.error);
@@ -218,7 +218,7 @@ const ResultadosBusqueda = () => {
                   <div className="p-5 flex gap-4 items-center border-b border-gray-100 bg-gray-50">
                     <div className="w-16 h-16 rounded-full bg-gray-200 border-2 border-[#e8c582] overflow-hidden flex-shrink-0 relative">
                       {prestador.fotoPerfil ? (
-                        <img src={prestador.fotoPerfil.startsWith('http') ? prestador.fotoPerfil : `http://localhost:5000/${prestador.fotoPerfil}`} alt="Perfil" className="absolute inset-0 w-full h-full object-cover" />
+                        <img src={prestador.fotoPerfil.startsWith('http') ? prestador.fotoPerfil : `${import.meta.env.VITE_API_URL}/${prestador.fotoPerfil}`} alt="Perfil" className="absolute inset-0 w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center font-extrabold text-2xl text-gray-500">{prestador.nombre.charAt(0)}</div>
                       )}

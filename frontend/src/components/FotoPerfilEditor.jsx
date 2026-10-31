@@ -107,7 +107,7 @@ const FotoPerfilEditor = ({ perfil, onActualizar, tema = 'oscuro', tamaño = 'gr
   const imageUrl = preview 
     ? preview 
     : (perfil.fotoPerfil 
-        ? (perfil.fotoPerfil.startsWith('http') ? perfil.fotoPerfil : `http://localhost:5000/${perfil.fotoPerfil}`) 
+        ? (perfil.fotoPerfil.startsWith('http') ? perfil.fotoPerfil : `${import.meta.env.VITE_API_URL}/${perfil.fotoPerfil}`) 
         : null);
 
   const overlayStyle = {

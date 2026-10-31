@@ -210,7 +210,7 @@ const AdminDashboard = () => {
               {documentosModal.map((doc, idx) => (
                 <div key={idx} className="p-4 bg-[#f5f1ea] border border-gray-300 rounded-md flex justify-between items-center shadow-sm">
                   <span className="text-sm text-[#1b3b2c] font-extrabold truncate max-w-[200px]" title={doc}>📄 Evidencia_{idx + 1}</span>
-                  <a href={`http://localhost:5000/${doc}`} target="_blank" rel="noopener noreferrer" className="text-xs bg-[#1b3b2c] text-[#e8c582] px-4 py-2 rounded font-extrabold hover:bg-opacity-90 shadow-sm transition-all">Visualizar ↗</a>
+                  <a href={`${import.meta.env.VITE_API_URL}/${doc}`} target="_blank" rel="noopener noreferrer" className="text-xs bg-[#1b3b2c] text-[#e8c582] px-4 py-2 rounded font-extrabold hover:bg-opacity-90 shadow-sm transition-all">Visualizar ↗</a>
                 </div>
               ))}
             </div>
