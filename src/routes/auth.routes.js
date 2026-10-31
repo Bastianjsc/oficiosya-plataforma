@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Importar controladores y middlewares en una sola línea cada uno
+// Importar controladores en una sola declaración
 const { 
     registrarUsuario, 
     obtenerUsuarios, 
@@ -12,7 +12,13 @@ const {
     eliminarUsuarioAdmin,
     actualizarPerfilPrestador,
     obtenerPrestadoresPublicos,
-    obtenerPrestadorPorIdPublico
+    obtenerPrestadorPorIdPublico,
+    obtenerNotificaciones,
+    marcarNotificacionLeida,
+    eliminarNotificacion,
+    eliminarNotificacionesEnMasa,
+    solicitarRecuperacion,    // <-- NUEVA IMPORTACIÓN
+    restablecerPassword       // <-- NUEVA IMPORTACIÓN
 } = require('../controllers/auth.controller');
 
 const { verificarToken } = require('../middlewares/auth.middleware');
@@ -28,25 +34,38 @@ router.post('/login', loginUsuario);
 router.get('/prestadores-publicos', obtenerPrestadoresPublicos);
 router.get('/prestadores-publicos/:id', obtenerPrestadorPorIdPublico);
 
+// --- RUTAS DE RECUPERACIÓN DE CONTRASEÑA ---
+router.post('/recuperar-password', solicitarRecuperacion);
+router.post('/restablecer-password', restablecerPassword);
+// -------------------------------------------
+
 // Rutas protegidas
 router.get('/users', verificarToken, obtenerUsuarios);
 router.get('/perfil', verificarToken, obtenerPerfilActual);
 
+// --- RUTAS DE NOTIFICACIONES ---
+router.get('/notificaciones', verificarToken, obtenerNotificaciones);
+router.patch('/notificaciones/:id/leer', verificarToken, marcarNotificacionLeida);
+router.delete('/notificaciones/:id', verificarToken, eliminarNotificacion);
+router.post('/notificaciones/masa', verificarToken, eliminarNotificacionesEnMasa);
+
+// Ruta para subida de documentos
 router.post('/verify-upload', 
     verificarToken, 
     upload.fields([
-        { name: 'cedula', maxCount: 1 }, 
-        { name: 'antecedentes', maxCount: 1 }
+        { name: 'cedula', maxCount: 5 },
+        { name: 'antecedentes', maxCount: 5 }
     ]), 
     uploadDocumentos
 );
 
-// Ruta de administración para otorgar el Sello de Confianza[cite: 1]
+// Ruta de administración para otorgar el Sello de Confianza
 router.patch('/users/:id/verify', verificarToken, verificarPrestadorAdmin);
 
 // Ruta para eliminar cuentas (Solo Admin)
 router.delete('/users/:id', verificarToken, eliminarUsuarioAdmin);
 
+// Ruta para actualizar perfil / foto
 router.put('/perfil', verificarToken, upload.single('fotoPerfil'), actualizarPerfilPrestador);
 
 module.exports = router;

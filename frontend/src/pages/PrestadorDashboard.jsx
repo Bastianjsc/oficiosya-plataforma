@@ -4,8 +4,10 @@ import { COMUNAS_RM } from '../data/comunas';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import InsigniaVerificada from '../components/InsigniaVerificada';
+import ResenaView from '../components/ResenaView';
+import FotoPerfilEditor from '../components/FotoPerfilEditor';
 
-// Fix universal para los iconos de Leaflet en React/Vite
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -15,18 +17,12 @@ L.Icon.Default.mergeOptions({
 
 const MapUpdater = ({ center }) => {
   const map = useMap();
-  useEffect(() => {
-    map.flyTo(center, 16, { animate: true, duration: 1.5 });
-  }, [center, map]);
+  useEffect(() => { map.flyTo(center, 16, { animate: true, duration: 1.5 }); }, [center, map]);
   return null;
 };
 
 const MapPicker = ({ setCoords }) => {
-  useMapEvents({
-    click(e) {
-      setCoords(e.latlng.lat, e.latlng.lng);
-    }
-  });
+  useMapEvents({ click(e) { setCoords(e.latlng.lat, e.latlng.lng); } });
   return null;
 };
 
@@ -35,15 +31,15 @@ const PrestadorDashboard = () => {
   const [solicitudes, setSolicitudes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [editando, setEditando] = useState(false);
-  const [vistaSolicitudes, setVistaSolicitudes] = useState('lista'); 
   
+  const [vistaSolicitudes, setVistaSolicitudes] = useState('mosaico2'); 
+  const [filtroEstadoSolicitud, setFiltroEstadoSolicitud] = useState('');
+
   const [formData, setFormData] = useState({
     tituloTienda: '', biografia: '', tarifaReferencia: '', zonaCobertura: [], tipoAtencion: 'A domicilio', localesFisicos: []
   });
   
-  const [fotoArchivo, setFotoArchivo] = useState(null);
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
-  
   const [modalCotizacion, setModalCotizacion] = useState(null);
   const [formCotizacion, setFormCotizacion] = useState({ manoDeObra: '', materiales: '', mensajePrestador: '' });
   const [procesando, setProcesando] = useState(false);
@@ -57,8 +53,8 @@ const PrestadorDashboard = () => {
     if (!token) return navigate('/login');
 
     Promise.all([
-      fetch('http://localhost:5000/api/auth/perfil', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()),
-      fetch('http://localhost:5000/api/marketplace/solicitudes/prestador', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
+      fetch('${import.meta.env.VITE_API_URL}/api/auth/perfil', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()),
+      fetch('${import.meta.env.VITE_API_URL}/api/marketplace/solicitudes/prestador', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
     ])
     .then(([dataPerfil, dataSolicitudes]) => {
       if (dataPerfil.success) {
@@ -83,14 +79,13 @@ const PrestadorDashboard = () => {
       }
       if (dataSolicitudes.success) setSolicitudes(dataSolicitudes.solicitudes);
     })
-    .catch(err => console.error('Error cargando datos:', err)) // Uso de 'err' para evitar warning
+    .catch(err => console.error('Error cargando datos:', err))
     .finally(() => setCargando(false));
   }, [navigate]);
 
   useEffect(() => { cargarDatos(); }, [cargarDatos]);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handleFileChange = (e) => { if (e.target.files && e.target.files[0]) setFotoArchivo(e.target.files[0]); };
   const handleAgregarComuna = (e) => {
     const val = e.target.value;
     if (val && !formData.zonaCobertura.includes(val)) setFormData({ ...formData, zonaCobertura: [...formData.zonaCobertura, val] });
@@ -98,53 +93,29 @@ const PrestadorDashboard = () => {
   };
   const handleRemoverComuna = (val) => setFormData({ ...formData, zonaCobertura: formData.zonaCobertura.filter(c => c !== val) });
 
-  const agregarLocal = () => {
-    setFormData({ ...formData, localesFisicos: [...formData.localesFisicos, { nombreLocal: '', direccion: '', numero: '', comuna: '', lat: -33.4372, lng: -70.6506 }] });
-  };
-  const removerLocal = (index) => {
-    const nuevosLocales = [...formData.localesFisicos];
-    nuevosLocales.splice(index, 1);
-    setFormData({ ...formData, localesFisicos: nuevosLocales });
-  };
-  const handleLocalChange = (index, campo, valor) => {
-    const nuevosLocales = [...formData.localesFisicos];
-    nuevosLocales[index][campo] = valor;
-    setFormData({ ...formData, localesFisicos: nuevosLocales });
-  };
-  const handleMapCoords = (index, lat, lng) => {
-    const nuevosLocales = [...formData.localesFisicos];
-    nuevosLocales[index].lat = lat;
-    nuevosLocales[index].lng = lng;
-    setFormData({ ...formData, localesFisicos: nuevosLocales });
-  };
+  const agregarLocal = () => { setFormData({ ...formData, localesFisicos: [...formData.localesFisicos, { nombreLocal: '', direccion: '', numero: '', comuna: '', lat: -33.4372, lng: -70.6506 }] }); };
+  const removerLocal = (index) => { const nuevos = [...formData.localesFisicos]; nuevos.splice(index, 1); setFormData({ ...formData, localesFisicos: nuevos }); };
+  const handleLocalChange = (index, campo, valor) => { const nuevos = [...formData.localesFisicos]; nuevos[index][campo] = valor; setFormData({ ...formData, localesFisicos: nuevos }); };
+  const handleMapCoords = (index, lat, lng) => { const nuevos = [...formData.localesFisicos]; nuevos[index].lat = lat; nuevos[index].lng = lng; setFormData({ ...formData, localesFisicos: nuevos }); };
 
   const buscarDireccionEnMapa = async (index) => {
     const local = formData.localesFisicos[index];
-    if (!local.direccion || !local.numero || !local.comuna) {
-      alert("Por favor, ingresa la calle, el número y selecciona una comuna para buscar con precisión.");
-      return;
-    }
-
+    if (!local.direccion || !local.numero || !local.comuna) return alert("Ingresa calle, número y comuna.");
     setBuscandoMapa(true);
     try {
-      const query = `${local.direccion} ${local.numero}, ${local.comuna}, Región Metropolitana, Chile`;
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        handleMapCoords(index, parseFloat(data[0].lat), parseFloat(data[0].lon));
-      } else {
-        alert("No encontramos la numeración exacta. Acercaremos el pin a la calle, por favor ajústalo manualmente arrastrándolo o haciendo clic en el mapa.");
-        const queryCalle = `${local.direccion}, ${local.comuna}, Chile`;
-        const resCalle = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryCalle)}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(`${local.direccion} ${local.numero}, ${local.comuna}, RM, Chile`)}`);
+      const data = await res.json();
+      if (data.length > 0) handleMapCoords(index, parseFloat(data[0].lat), parseFloat(data[0].lon));
+      else {
+        const resCalle = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(`${local.direccion}, ${local.comuna}, Chile`)}`);
         const dataCalle = await resCalle.json();
         if (dataCalle.length > 0) handleMapCoords(index, parseFloat(dataCalle[0].lat), parseFloat(dataCalle[0].lon));
       }
-    } catch (error) {
-      console.error("Error buscando mapa:", error); // Uso de 'error' para evitar warning
-      alert("Hubo un problema de conexión con el mapa.");
-    } finally {
-      setBuscandoMapa(false);
+    } catch (error) { 
+      console.error(error); // Corrección ESLint
+      alert("Hubo un problema de conexión con el mapa."); 
+    } finally { 
+      setBuscandoMapa(false); 
     }
   };
 
@@ -158,18 +129,17 @@ const PrestadorDashboard = () => {
     dataToSend.append('tipoAtencion', formData.tipoAtencion);
     dataToSend.append('zonaCobertura', JSON.stringify(formData.zonaCobertura));
     dataToSend.append('localesFisicos', JSON.stringify(formData.localesFisicos));
-    if (fotoArchivo) dataToSend.append('fotoPerfil', fotoArchivo);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/perfil', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: dataToSend });
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/auth/perfil', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: dataToSend });
       const data = await response.json();
       if (response.ok && data.success) {
         setPrestador(data.usuario);
         setEditando(false);
         setMensaje({ texto: 'Ficha comercial actualizada.', tipo: 'success' });
       } else { setMensaje({ texto: data.message || 'Error al actualizar.', tipo: 'error' }); }
-    } catch (err) { 
-      console.error("Error en submit:", err); // Uso de 'err' para evitar warning
+    } catch (error) { 
+      console.error(error); // Corrección ESLint
       setMensaje({ texto: 'Error de conexión.', tipo: 'error' }); 
     }
   };
@@ -181,14 +151,14 @@ const PrestadorDashboard = () => {
     setProcesando(true);
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://localhost:5000/api/marketplace/solicitudes/${modalCotizacion._id}/cotizar`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/marketplace/solicitudes/${modalCotizacion._id}/cotizar`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ manoDeObra: Number(formCotizacion.manoDeObra), materiales: Number(formCotizacion.materiales), mensajePrestador: formCotizacion.mensajePrestador })
       });
       const data = await response.json();
       if (response.ok && data.success) { setModalCotizacion(null); cargarDatos(); } else { alert(data.message); }
-    } catch (err) { 
-      console.error("Error al cotizar:", err); // Uso de 'err' para evitar warning
+    } catch (error) { 
+      console.error("Error al cotizar:", error); // Corrección ESLint
     } finally { 
       setProcesando(false); 
     }
@@ -198,20 +168,19 @@ const PrestadorDashboard = () => {
     if (!window.confirm(`¿Estás seguro de marcar esta solicitud como ${nuevoEstado}?`)) return;
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://localhost:5000/api/marketplace/solicitudes/${id}/estado`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/marketplace/solicitudes/${id}/estado`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ estado: nuevoEstado })
       });
-      const data = await response.json();
-      if (response.ok && data.success) cargarDatos();
-    } catch (err) { 
-      console.error("Error estado solicitud:", err); // Uso de 'err' para evitar warning
+      if (response.ok) cargarDatos();
+    } catch (error) { 
+      console.error("Error estado solicitud:", error); // Corrección ESLint
     }
   };
 
   const solicitudesPendientes = solicitudes.filter(s => s.estado === 'Pendiente').length;
   const trabajosActivos = solicitudes.filter(s => s.estado === 'Aceptado').length;
   const resenasRecibidas = solicitudes.filter(s => s.calificacion && s.calificacion.estrellas).sort((a, b) => new Date(b.calificacion.fecha) - new Date(a.calificacion.fecha));
-
+  
   const getBadgeColor = (estado) => {
     switch(estado) {
       case 'Pendiente': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
@@ -228,6 +197,10 @@ const PrestadorDashboard = () => {
     return new Date(fechaISO).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' });
   };
 
+  const solicitudesMostradas = filtroEstadoSolicitud 
+    ? solicitudes.filter(s => s.estado === filtroEstadoSolicitud)
+    : solicitudes;
+
   if (cargando) return <div className="p-8 text-center font-semibold">Cargando ficha...</div>;
 
   return (
@@ -238,8 +211,11 @@ const PrestadorDashboard = () => {
         <div className="bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <h1 className="text-3xl font-extrabold text-[#1b3b2c]">Ficha Pública</h1>
+            
             {prestador?.isVerified ? (
-              <span className="bg-green-100 text-green-800 font-extrabold px-5 py-2.5 rounded-full text-sm border border-green-300 shadow-sm">✓ Sello de Confianza</span>
+              <span className="bg-gray-100 text-[#1b3b2c] font-extrabold px-5 py-2.5 rounded-full text-sm border border-gray-300 shadow-sm flex items-center gap-2">
+                Perfil Verificado <InsigniaVerificada className="w-5 h-5" />
+              </span>
             ) : (
               <span className="bg-yellow-100 text-yellow-800 font-extrabold px-5 py-2.5 rounded-full text-sm border border-yellow-300 shadow-sm">⏳ Pendiente de Auditoría</span>
             )}
@@ -247,11 +223,22 @@ const PrestadorDashboard = () => {
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6 border-b border-gray-200 pb-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-              <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-[#1b3b2c] overflow-hidden flex-shrink-0 relative shadow-inner">
-                {prestador?.fotoPerfil ? (
-                  <img src={prestador.fotoPerfil.startsWith('http') ? prestador.fotoPerfil : `http://localhost:5000/${prestador.fotoPerfil}`} alt="Perfil" className="w-full h-full object-cover" />
-                ) : <div className="w-full h-full flex items-center justify-center font-extrabold text-3xl text-[#1b3b2c]">{prestador?.nombre?.charAt(0)}</div>}
-              </div>
+              
+              {editando ? (
+                <FotoPerfilEditor 
+                  perfil={prestador} 
+                  onActualizar={cargarDatos} 
+                  tema="claro" 
+                  tamaño="mediano" 
+                />
+              ) : (
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200 border-4 border-[#1b3b2c] overflow-hidden flex-shrink-0 relative shadow-inner">
+                  {prestador?.fotoPerfil ? (
+                    <img src={prestador.fotoPerfil.startsWith('http') ? prestador.fotoPerfil : `http://localhost:5000/${prestador.fotoPerfil}`} alt="Perfil" className="w-full h-full object-cover" />
+                  ) : <div className="w-full h-full flex items-center justify-center font-extrabold text-3xl text-[#1b3b2c]">{prestador?.nombre?.charAt(0)}</div>}
+                </div>
+              )}
+              
               <div className="text-center sm:text-left mt-1">
                 <h2 className="text-2xl font-extrabold text-[#1b3b2c] mb-1">{prestador?.tituloTienda || prestador?.nombre || 'Mi Tienda'}</h2>
                 <p className="text-sm text-gray-700 font-bold mb-2">{prestador?.oficio}</p>
@@ -259,7 +246,7 @@ const PrestadorDashboard = () => {
               </div>
             </div>
             <button onClick={() => setEditando(!editando)} className="w-full sm:w-auto bg-[#1b3b2c] text-white px-6 py-2.5 rounded-md text-sm font-bold hover:bg-opacity-90 shadow-sm">
-              {editando ? 'Cancelar Edición' : 'Editar Ficha'}
+              {editando ? 'Cerrar Edición' : 'Editar Ficha y Foto'}
             </button>
           </div>
 
@@ -290,9 +277,8 @@ const PrestadorDashboard = () => {
 
           {editando ? (
             <form onSubmit={handleSubmitPerfil} className="space-y-6 bg-gray-50 p-6 rounded-md border border-gray-200 mt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div><label className="block text-sm font-bold mb-2">Título de la Tienda</label><input type="text" name="tituloTienda" value={formData.tituloTienda} onChange={handleChange} className="w-full border px-4 py-2.5 rounded outline-none" /></div>
-                <div><label className="block text-sm font-bold mb-2">Foto</label><input type="file" onChange={handleFileChange} className="w-full border px-3 py-2 rounded text-sm" /></div>
               </div>
 
               <div><label className="block text-sm font-bold mb-2">Biografía</label><textarea name="biografia" rows="3" value={formData.biografia} onChange={handleChange} className="w-full border px-4 py-3 rounded outline-none"></textarea></div>
@@ -398,7 +384,7 @@ const PrestadorDashboard = () => {
               )}
 
               <div className="pt-4 border-t">
-                <button type="submit" className="w-full md:w-auto px-8 bg-[#1b3b2c] text-white py-3 rounded font-bold text-sm shadow-md hover:bg-opacity-90 transition-all">Guardar Cambios</button>
+                <button type="submit" className="w-full md:w-auto px-8 bg-[#1b3b2c] text-white py-3 rounded font-bold text-sm shadow-md hover:bg-opacity-90 transition-all">Guardar Detalles</button>
               </div>
             </form>
           ) : (
@@ -420,19 +406,35 @@ const PrestadorDashboard = () => {
 
         {/* BANDEJA SOLICITUDES */}
         <div className="bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h2 className="text-2xl font-bold">Bandeja de Solicitudes</h2>
-            <div className="flex bg-gray-100 p-1.5 rounded">
-              <button onClick={() => setVistaSolicitudes('lista')} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='lista'?'bg-white shadow':''}`}>Lista</button>
-              <button onClick={() => setVistaSolicitudes('mosaico2')} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='mosaico2'?'bg-white shadow':''}`}>Grilla</button>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              <select 
+                value={filtroEstadoSolicitud} 
+                onChange={(e) => setFiltroEstadoSolicitud(e.target.value)}
+                className="bg-gray-50 border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm font-bold outline-none focus:border-[#1b3b2c]"
+              >
+                <option value="">Todos los Estados</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Cotizado">Cotizado</option>
+                <option value="Aceptado">Aceptado</option>
+                <option value="Finalizado">Finalizado</option>
+                <option value="Rechazado">Rechazado</option>
+              </select>
+
+              <div className="flex bg-gray-100 p-1.5 rounded">
+                <button onClick={() => setVistaSolicitudes('mosaico2')} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='mosaico2'?'bg-white shadow':''}`}>Grilla</button>
+                <button onClick={() => setVistaSolicitudes('lista')} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='lista'?'bg-white shadow':''}`}>Lista</button>
+              </div>
             </div>
           </div>
           
-          {solicitudes.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed rounded"><p className="text-gray-600 font-bold">Aún no tienes solicitudes.</p></div>
+          {solicitudesMostradas.length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed rounded"><p className="text-gray-600 font-bold">No hay solicitudes que coincidan con la búsqueda.</p></div>
           ) : (
             <div className={vistaSolicitudes === 'lista' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 gap-6'}>
-              {solicitudes.map(sol => (
+              {solicitudesMostradas.map(sol => (
                 <div key={sol._id} className="border rounded-lg p-5 bg-gray-50 flex flex-col h-full">
                   <div className="flex justify-between mb-4">
                     <div><h4 className="font-extrabold">{sol.cliente?.nombre}</h4><p className="text-xs text-gray-500">{formatearFecha(sol.createdAt)}</p></div>
@@ -440,8 +442,8 @@ const PrestadorDashboard = () => {
                   </div>
                   <div className="bg-white p-3.5 rounded border mb-4 flex-grow"><p className="text-sm">{sol.descripcionCliente}</p></div>
                   <div className="flex gap-2 justify-end mt-auto pt-3 border-t">
-                    {sol.estado === 'Pendiente' && (<><button onClick={() => cambiarEstadoSolicitud(sol._id, 'Rechazado')} className="px-4 py-2 rounded text-xs font-bold text-red-600 bg-red-50 border">Rechazar</button><button onClick={() => abrirModalCotizacion(sol)} className="px-4 py-2 rounded text-xs font-bold text-white bg-[#1b3b2c]">Cotizar</button></>)}
-                    {sol.estado === 'Aceptado' && <button onClick={() => cambiarEstadoSolicitud(sol._id, 'Finalizado')} className="w-full px-4 py-2.5 rounded text-sm font-bold text-white bg-green-600">✓ Marcar como Finalizado</button>}
+                    {sol.estado === 'Pendiente' && (<><button onClick={() => cambiarEstadoSolicitud(sol._id, 'Rechazado')} className="px-4 py-2 rounded text-xs font-bold text-red-600 bg-red-50 border border-red-200">Rechazar</button><button onClick={() => abrirModalCotizacion(sol)} className="px-4 py-2 rounded text-xs font-bold text-white bg-[#1b3b2c]">Cotizar</button></>)}
+                    {sol.estado === 'Aceptado' && <button onClick={() => cambiarEstadoSolicitud(sol._id, 'Finalizado')} className="w-full px-4 py-2.5 rounded text-sm font-bold text-white bg-green-600 border border-green-700">✓ Marcar como Finalizado</button>}
                   </div>
                 </div>
               ))}
@@ -471,19 +473,12 @@ const PrestadorDashboard = () => {
         </div>
       )}
 
-      {/* MODAL RESEÑAS */}
+      {/* --- INTEGRACIÓN DEL NUEVO COMPONENTE DE RESEÑAS --- */}
       {mostrarModalResenas && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-          <div className="bg-white p-8 rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col relative">
-            <button onClick={() => setMostrarModalResenas(false)} className="absolute top-4 right-4 text-3xl font-bold">&times;</button>
-            <h3 className="text-2xl font-extrabold mb-6">Reseñas de Clientes</h3>
-            <div className="overflow-y-auto space-y-4 flex-grow">
-              {resenasRecibidas.length === 0 ? <p className="text-center font-bold text-gray-500 py-10">Aún no tienes reseñas.</p> : resenasRecibidas.map(r => (
-                <div key={r._id} className="bg-gray-50 p-4 rounded border"><p className="font-extrabold">{r.cliente?.nombre}</p><p className="italic text-sm">"{r.calificacion.comentario}"</p></div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ResenaView 
+          resenas={resenasRecibidas} 
+          onClose={() => setMostrarModalResenas(false)} 
+        />
       )}
     </div>
   );

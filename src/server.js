@@ -12,7 +12,10 @@ connectDB();
 
 const path = require('path');
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Vercel URL o Localhost
+  credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // Declarar el uso de las rutas base

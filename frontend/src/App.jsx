@@ -1,59 +1,59 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import Layout from './components/Layout';
 import Home from './pages/Home';
+import ResultadosBusqueda from './pages/ResultadosBusqueda';
+import PrestadorPublicoView from './pages/PrestadorPublicoView';
+import Login from './pages/Login';
 import Registro from './pages/Registro';
-import Login from './pages/Login'; 
 import Onboarding from './pages/Onboarding';
 import ClienteDashboard from './pages/ClienteDashboard';
 import PrestadorDashboard from './pages/PrestadorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import ResultadosBusqueda from './pages/ResultadosBusqueda';
-import PrestadorPublicoView from './pages/PrestadorPublicoView';
-import RutaProtegida from './components/RutaProtegida'; // <--- Importamos el guardia
+import NotificacionesView from './pages/NotificacionesView';
+import RutaProtegida from './components/RutaProtegida';
+
+// --- IMPORTACIONES DEL FLUJO DE CORREOS Y CONTRASEÑA ---
+import VerificacionCorreo from './pages/VerificacionCorreo';
+import RecuperarPassword from './pages/RecuperarPassword';
+import RestablecerPassword from './pages/RestablecerPassword';
+
+// --- COMPONENTE DE OPTIMIZACIÓN DE UX ---
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <BrowserRouter>
-      <Navbar /> 
+      {/* 
+        El ScrollToTop se encarga de que, al cambiar de ruta 
+        (ej. al hacer clic en enlaces del footer), 
+        la vista siempre vuelva a la parte superior de la página. 
+      */}
+      <ScrollToTop />
       
-      <div className="min-h-screen bg-[#f5f1ea] text-[#1b3b2c]">
-        <Routes>
-          {/* RUTAS PÚBLICAS (Accesibles para todos) */}
+      <Routes>
+        <Route element={<Layout />}>
+          {/* --- RUTAS PÚBLICAS PRINCIPALES --- */}
           <Route path="/" element={<Home />} />
+          <Route path="/buscar" element={<ResultadosBusqueda />} />
+          <Route path="/prestador/:id" element={<PrestadorPublicoView />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
-          <Route path="/resultados" element={<ResultadosBusqueda />} />
-          <Route path="/prestador/:id" element={<PrestadorPublicoView />} />
           
-          {/* RUTAS PROTEGIDAS POR ROL */}
-          <Route path="/onboarding" element={
-            <RutaProtegida rolesPermitidos={['Prestador']}>
-              <Onboarding />
-            </RutaProtegida>
-          } />
-          
-          <Route path="/cliente" element={
-            <RutaProtegida rolesPermitidos={['Cliente']}>
-              <ClienteDashboard />
-            </RutaProtegida>
-          } />
-          
-          <Route path="/prestador" element={
-            <RutaProtegida rolesPermitidos={['Prestador']}>
-              <PrestadorDashboard />
-            </RutaProtegida>
-          } />
-          
-          <Route path="/admin" element={
-            <RutaProtegida rolesPermitidos={['Admin']}>
-              <AdminDashboard />
-            </RutaProtegida>
-          } />
-          
-          {/* RUTA COMODÍN (Si escriben cualquier locura en la URL) */}
-          <Route path="*" element={<Login />} />
-        </Routes>
-      </div>
+          {/* --- RUTAS PÚBLICAS PARA SIMULACIÓN DE FLUJO DE CORREO --- */}
+          <Route path="/verificar-correo" element={<VerificacionCorreo />} />
+          <Route path="/recuperar-password" element={<RecuperarPassword />} />
+          <Route path="/restablecer-password" element={<RestablecerPassword />} />
+
+          {/* --- RUTAS PROTEGIDAS (Requieren Token JWT) --- */}
+          <Route element={<RutaProtegida />}>
+            <Route path="/cliente" element={<ClienteDashboard />} />
+            <Route path="/prestador" element={<PrestadorDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/notificaciones" element={<NotificacionesView />} />
+          </Route>
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }

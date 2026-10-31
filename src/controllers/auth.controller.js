@@ -1,4 +1,5 @@
 const User = require('../models/user.model');
+const Solicitud = require('../models/solicitud.model'); // Ya estaba importado para las notificaciones
 const jwt = require('jsonwebtoken');
 
 // --- Diccionario interno para el backend (Geolocalización Fallback) ---
@@ -124,39 +125,6 @@ const obtenerPerfilActual = async (req, res) => {
     }
 };
 
-const uploadDocumentos = async (req, res) => {
-    try {
-        if (!req.files || (!req.files.cedula && !req.files.antecedentes)) {
-            return res.status(400).json({ success: false, message: 'Faltan documentos requeridos.' });
-        }
-
-        const usuario = await User.findById(req.usuario.id);
-        if (!usuario) {
-            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
-        }
-
-        const rutasDocumentos = [];
-        if (req.files.cedula && req.files.cedula[0]) {
-            rutasDocumentos.push(req.files.cedula[0].path.replace(/\\/g, '/'));
-        }
-        if (req.files.antecedentes && req.files.antecedentes[0]) {
-            rutasDocumentos.push(req.files.antecedentes[0].path.replace(/\\/g, '/'));
-        }
-
-        usuario.documentosIdentidad = rutasDocumentos;
-        await usuario.save();
-
-        res.status(200).json({ 
-            success: true, 
-            message: 'Documentos recibidos con éxito. Tu perfil está en revisión.' 
-        });
-
-    } catch (error) {
-        console.log("💥 ERROR EN UPLOAD:", error);
-        res.status(500).json({ success: false, message: 'Error procesando documentos', error: error.message });
-    }
-};
-
 const verificarPrestadorAdmin = async (req, res) => {
     try {
         const { id } = req.params;
@@ -171,7 +139,7 @@ const verificarPrestadorAdmin = async (req, res) => {
 
         res.status(200).json({ 
             success: true, 
-            message: 'Prestador verificado exitosamente con el Sello de Confianza.' 
+            message: 'Prestador validado exitosamente. Se ha otorgado la insignia de verificación.'
         });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error al actualizar el estado', error: error.message });
@@ -195,45 +163,47 @@ const eliminarUsuarioAdmin = async (req, res) => {
 
 const actualizarPerfilPrestador = async (req, res) => {
     try {
-        const { tituloTienda, biografia, tarifaReferencia, zonaCobertura, tipoAtencion, localesFisicos } = req.body;
+        const { tituloTienda, biografia, tarifaReferencia, zonaCobertura, tipoAtencion, localesFisicos, eliminarFoto } = req.body;
         const usuario = await User.findById(req.usuario.id);
 
-        if (!usuario || usuario.rol !== 'Prestador') {
-            return res.status(403).json({ success: false, message: 'No autorizado.' });
-        }
-
-        if (tituloTienda !== undefined) usuario.tituloTienda = tituloTienda;
-        if (biografia !== undefined) usuario.biografia = biografia;
-        if (tarifaReferencia !== undefined) usuario.tarifaReferencia = tarifaReferencia;
-        if (tipoAtencion !== undefined) usuario.tipoAtencion = tipoAtencion;
-        
-        if (zonaCobertura !== undefined) {
-            usuario.zonaCobertura = JSON.parse(zonaCobertura);
-        }
-
-        if (localesFisicos !== undefined) {
-            const arrLocales = JSON.parse(localesFisicos);
-            usuario.localesFisicos = arrLocales.map(local => {
-                let coords = [0, 0];
-                
-                if (local.lat && local.lng) {
-                    coords = [parseFloat(local.lng), parseFloat(local.lat)];
-                } else if (local.comuna && COORDS_BACKEND[local.comuna]) {
-                    coords = [COORDS_BACKEND[local.comuna].lng, COORDS_BACKEND[local.comuna].lat];
-                }
-                
-                return {
-                    nombreLocal: local.nombreLocal || 'Sede Principal',
-                    direccion: local.direccion,
-                    numero: local.numero || '', // <-- NUEVO CAMPO AL GUARDAR
-                    comuna: local.comuna,
-                    ubicacion: { type: 'Point', coordinates: coords }
-                };
-            });
+        if (!usuario) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
         }
 
         if (req.file) {
             usuario.fotoPerfil = req.file.path.replace(/\\/g, '/');
+        } else if (eliminarFoto === 'true') {
+            usuario.fotoPerfil = ''; 
+        }
+
+        if (usuario.rol === 'Prestador') {
+            if (tituloTienda !== undefined) usuario.tituloTienda = tituloTienda;
+            if (biografia !== undefined) usuario.biografia = biografia;
+            if (tarifaReferencia !== undefined) usuario.tarifaReferencia = tarifaReferencia;
+            if (tipoAtencion !== undefined) usuario.tipoAtencion = tipoAtencion;
+            
+            if (zonaCobertura !== undefined) {
+                usuario.zonaCobertura = JSON.parse(zonaCobertura);
+            }
+
+            if (localesFisicos !== undefined) {
+                const arrLocales = JSON.parse(localesFisicos);
+                usuario.localesFisicos = arrLocales.map(local => {
+                    let coords = [0, 0];
+                    if (local.lat && local.lng) {
+                        coords = [parseFloat(local.lng), parseFloat(local.lat)];
+                    } else if (local.comuna && COORDS_BACKEND[local.comuna]) {
+                        coords = [COORDS_BACKEND[local.comuna].lng, COORDS_BACKEND[local.comuna].lat];
+                    }
+                    return {
+                        nombreLocal: local.nombreLocal || 'Sede Principal',
+                        direccion: local.direccion,
+                        numero: local.numero || '', 
+                        comuna: local.comuna,
+                        ubicacion: { type: 'Point', coordinates: coords }
+                    };
+                });
+            }
         }
 
         await usuario.save();
@@ -246,45 +216,92 @@ const actualizarPerfilPrestador = async (req, res) => {
 
 const obtenerPrestadoresPublicos = async (req, res) => {
     try {
-        const { servicio, comuna, modo, lat, lng, radio } = req.query;
-        let query = { rol: 'Prestador', isVerified: true };
+        const { modo, servicio, comuna, lat, lng, radio } = req.query;
         
-        if (servicio) query.oficio = servicio;
+        let query = { 
+            rol: 'Prestador',
+            isVerified: true
+        }; 
 
-        // BÚSQUEDA VARIANTE 1: Locales físicos por proximidad en mapa (2dsphere)
-        if (modo === 'local') {
-            query.tipoAtencion = { $in: ['En local', 'Ambas'] };
+        if (servicio) {
+            query.oficio = servicio;
+        }
+
+        if (modo === 'mapa') {
             if (lat && lng && radio) {
                 query['localesFisicos.ubicacion'] = {
-                    $near: {
-                        $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
-                        $maxDistance: parseInt(radio) * 1000 // Convertir kilómetros a metros
+                    $geoWithin: {$centerSphere: [
+                            [parseFloat(lng), parseFloat(lat)], 
+                            parseFloat(radio) / 6378.1
+                        ]
                     }
                 };
             }
-        } 
-        // BÚSQUEDA VARIANTE 2: Atención a domicilio tradicional
-        else {
-            query.tipoAtencion = { $in: ['A domicilio', 'Ambas'] };
+        } else {
             if (comuna) {
-                query.zonaCobertura = comuna;
+                query.$or = [
+                    { zonaCobertura: comuna },
+                    { 'localesFisicos.comuna': comuna }
+                ];
             }
         }
 
-        const prestadores = await User.find(query).select('nombre oficio tituloTienda biografia tarifaReferencia zonaCobertura tipoAtencion localesFisicos fotoPerfil calificacionPromedio numeroResenas');
+        const prestadores = await User.find(query)
+            .select('-password')
+            .sort({ calificacionPromedio: -1, numeroResenas: -1 });
+        
         res.status(200).json({ success: true, prestadores });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error al obtener prestadores públicos', error: error.message });
+        console.error('Error al obtener prestadores públicos:', error);
+        res.status(500).json({ success: false, message: 'Error de servidor al buscar prestadores.' });
     }
 };
 
+// --- ACTUALIZACIÓN CRÍTICA PARA INYECTAR LAS RESEÑAS REALES ---
 const obtenerPrestadorPorIdPublico = async (req, res) => {
     try {
+        // Obtenemos el perfil básico (usamos .lean() para poder inyectar datos)
         const prestador = await User.findOne({ _id: req.params.id, rol: 'Prestador', isVerified: true })
-            .select('nombre oficio tituloTienda biografia tarifaReferencia zonaCobertura tipoAtencion localesFisicos fotoPerfil calificacionPromedio numeroResenas');
+            .select('nombre oficio tituloTienda biografia tarifaReferencia zonaCobertura tipoAtencion localesFisicos fotoPerfil isVerified calificacionPromedio numeroResenas')
+            .lean();
         
         if (!prestador) {
             return res.status(404).json({ success: false, message: 'Prestador no encontrado.' });
+        }
+
+        // Buscamos las solicitudes de este prestador que estén finalizadas y tengan calificación
+        const resenas = await Solicitud.find({
+            prestador: req.params.id,
+            estado: 'Finalizado',
+            calificacion: { $exists: true, $ne: null }
+        })
+        .populate('cliente', 'nombre') 
+        .sort({ 'calificacion.fecha': -1 });
+
+        // Mapeamos al formato que necesita el frontend
+        const resenasFormateadas = resenas.map(sol => ({
+            _id: sol._id,
+            cliente: {
+                nombre: sol.cliente ? sol.cliente.nombre : 'Usuario Anónimo' 
+            },
+            calificacion: {
+                estrellas: sol.calificacion.estrellas,
+                comentario: sol.calificacion.comentario,
+                fecha: sol.calificacion.fecha || sol.updatedAt
+            }
+        }));
+
+        // Inyectamos las reseñas al objeto antes de enviarlo
+        prestador.resenas = resenasFormateadas;
+        
+        // (Opcional) Recalcular aquí el promedio exacto para máxima fiabilidad
+        if (resenasFormateadas.length > 0) {
+            const sumaEstrellas = resenasFormateadas.reduce((acc, curr) => acc + curr.calificacion.estrellas, 0);
+            prestador.calificacionPromedio = (sumaEstrellas / resenasFormateadas.length).toFixed(1);
+            prestador.numeroResenas = resenasFormateadas.length;
+        } else {
+            prestador.calificacionPromedio = '0.0';
+            prestador.numeroResenas = 0;
         }
         
         res.status(200).json({ success: true, prestador });
@@ -293,15 +310,130 @@ const obtenerPrestadorPorIdPublico = async (req, res) => {
     }
 };
 
+const obtenerNotificaciones = async (req, res) => {
+    try {
+        const user = await User.findById(req.usuario.id).lean();
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        const notificacionesBrutas = user.notificaciones || [];
+        const notifsOrdenadas = notificacionesBrutas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        
+        res.status(200).json({ success: true, notificaciones: notifsOrdenadas });
+    } catch (error) {
+        console.error("💥 Error fatal al obtener notificaciones:", error);
+        res.status(500).json({ success: false, message: 'Error al cargar notificaciones' });
+    }
+};
+
+const marcarNotificacionLeida = async (req, res) => {
+    try {
+        await User.updateOne(
+            { _id: req.usuario.id, "notificaciones._id": req.params.id },
+            { $set: { "notificaciones.$.leida": true } }
+        );
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+};
+
+const eliminarNotificacion = async (req, res) => {
+    try {
+        await User.findByIdAndUpdate(req.usuario.id, {
+            $pull: { notificaciones: { _id: req.params.id } }
+        });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+};
+
+const eliminarNotificacionesEnMasa = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        await User.findByIdAndUpdate(req.usuario.id, {
+            $pull: { notificaciones: { _id: { $in: ids } } }
+        });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+};
+
+const uploadDocumentos = async (req, res) => {
+    try {
+        if (!req.files || (!req.files.cedula && !req.files.antecedentes)) {
+            return res.status(400).json({ success: false, message: 'Faltan documentos.' });
+        }
+
+        const usuario = await User.findById(req.usuario.id);
+        const rutasDocumentos = [];
+
+        if (req.files.cedula) {
+            req.files.cedula.forEach(file => {
+                rutasDocumentos.push(file.path.replace(/\\/g, '/'));
+            });
+        }
+        
+        if (req.files.antecedentes) {
+            req.files.antecedentes.forEach(file => {
+                rutasDocumentos.push(file.path.replace(/\\/g, '/'));
+            });
+        }
+
+        usuario.documentosIdentidad = rutasDocumentos;
+        await usuario.save();
+
+        await User.updateMany({ rol: 'Admin' }, {
+            $push: { notificaciones: { texto: '🛡️ Un prestador ha subido múltiples documentos para revisión.', ruta: '/admin' } }
+        });
+
+        res.status(200).json({ success: true, message: 'Documentos recibidos con éxito. Tu perfil está en revisión.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error procesando documentos', error: error.message });
+    }
+};
+
+const solicitarRecuperacion = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const usuario = await User.findOne({ email });
+        
+        if (!usuario) {
+            return res.status(404).json({ success: false, message: 'No existe una cuenta vinculada a este correo electrónico.' });
+        }
+
+        res.status(200).json({ success: true, message: 'Simulación: Correo de recuperación enviado.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error de servidor.', error: error.message });
+    }
+};
+
+const restablecerPassword = async (req, res) => {
+    try {
+        const { email, nuevaPassword } = req.body;
+        const usuario = await User.findOne({ email });
+        
+        if (!usuario) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+        }
+
+        usuario.password = nuevaPassword;
+        await usuario.save();
+
+        res.status(200).json({ success: true, message: 'Contraseña actualizada correctamente.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al restablecer contraseña.', error: error.message });
+    }
+};
+
 module.exports = {
-    registrarUsuario,
-    loginUsuario,
-    obtenerUsuarios,
-    obtenerPerfilActual,
-    uploadDocumentos,
-    verificarPrestadorAdmin,
-    eliminarUsuarioAdmin,
-    actualizarPerfilPrestador,
-    obtenerPrestadoresPublicos,
-    obtenerPrestadorPorIdPublico
+    registrarUsuario, loginUsuario, obtenerUsuarios, obtenerPerfilActual, uploadDocumentos,
+    verificarPrestadorAdmin, eliminarUsuarioAdmin, actualizarPerfilPrestador,
+    obtenerPrestadoresPublicos, obtenerPrestadorPorIdPublico,
+    obtenerNotificaciones, marcarNotificacionLeida, eliminarNotificacion, eliminarNotificacionesEnMasa,
+    solicitarRecuperacion, restablecerPassword
 };

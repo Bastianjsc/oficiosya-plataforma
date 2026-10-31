@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     localesFisicos: [{
         nombreLocal: { type: String },
         direccion: { type: String },
-        numero: { type: String }, // <-- NUEVO CAMPO
+        numero: { type: String }, 
         comuna: { type: String },
         ubicacion: {
             type: { type: String, enum: ['Point'], default: 'Point' },
@@ -30,7 +30,14 @@ const userSchema = new mongoose.Schema({
         }
     }],
     calificacionPromedio: { type: Number, default: 0 },
-    numeroResenas: { type: Number, default: 0 }
+    numeroResenas: { type: Number, default: 0 },
+    // --- NUEVO SISTEMA DE NOTIFICACIONES ---
+    notificaciones: [{
+        texto: { type: String, required: true },
+        ruta: { type: String, required: true },
+        leida: { type: Boolean, default: false },
+        fecha: { type: Date, default: Date.now }
+    }]
 }, {
     timestamps: true
 });

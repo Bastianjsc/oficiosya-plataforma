@@ -1,37 +1,37 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
-const RutaProtegida = ({ children, rolesPermitidos }) => {
-  const token = localStorage.getItem('token');
+const RutaProtegida = ({ rolRequerido }) => {
+  let tokenValido = false;
+  let rolUsuario = '';
 
-  // 1. Si no hay token (es un invitado), lo enviamos al Login
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
+  // 1. Validamos el token dentro del try/catch de forma aislada
   try {
-    // 2. Desencriptar el payload del token para saber quién es
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const rolUsuario = payload.rol;
-
-    // 3. Verificar si el rol del usuario está en la lista de roles permitidos para esta página
-    if (rolesPermitidos && !rolesPermitidos.includes(rolUsuario)) {
-      
-      // Si no tiene permiso, lo redirigimos automáticamente a su panel correspondiente
-      if (rolUsuario === 'Cliente') return <Navigate to="/cliente" replace />;
-      if (rolUsuario === 'Prestador') return <Navigate to="/prestador" replace />;
-      if (rolUsuario === 'Admin') return <Navigate to="/admin" replace />;
-      
-      return <Navigate to="/" replace />;
+    const token = localStorage.getItem('token');
+    if (token) {
+      const payloadToken = JSON.parse(atob(token.split('.')[1]));
+      rolUsuario = payloadToken.rol;
+      tokenValido = true;
     }
-
-    // 4. Si pasa todas las validaciones, renderizamos el componente solicitado
-    return children;
-
   } catch (error) {
-    // Si alguien manipula el token manualmente en el navegador y lo corrompe, lo borramos y lo mandamos al login
-    localStorage.removeItem('token');
+    console.error("Error al validar el token de acceso:", error); // Soluciona la advertencia de variable no usada
+    tokenValido = false;
+  }
+
+  // 2. Si no hay token válido, redirigimos al login fuera del try/catch
+  if (!tokenValido) {
     return <Navigate to="/login" replace />;
   }
+
+  // 3. Si se requiere un rol específico y no coincide, redirigimos a su panel correspondiente
+  if (rolRequerido && rolUsuario !== rolRequerido) {
+    if (rolUsuario === 'Cliente') return <Navigate to="/cliente" replace />;
+    if (rolUsuario === 'Prestador') return <Navigate to="/prestador" replace />;
+    if (rolUsuario === 'Admin') return <Navigate to="/admin" replace />;
+    return <Navigate to="/" replace />;
+  }
+
+  // 4. Si pasa todas las validaciones, renderizamos el componente hijo
+  return <Outlet />;
 };
 
 export default RutaProtegida;
