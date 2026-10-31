@@ -13,8 +13,8 @@ connectDB();
 const path = require('path');
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Vercel URL o Localhost
-  credentials: true
+  origin: '*', // Permite cualquier origen temporalmente
+  credentials: false // Se debe poner en false si usamos '*'
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
