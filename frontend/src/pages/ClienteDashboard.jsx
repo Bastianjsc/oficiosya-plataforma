@@ -112,9 +112,6 @@ const ClienteDashboard = () => {
                   tema="oscuro" 
                   tamaño="grande" 
                 />
-                <h2 className="text-xl font-extrabold text-[#1b3b2c] mt-4">{perfil?.nombre}</h2>
-                <p className="text-sm text-gray-500 font-bold mb-4">{perfil?.email}</p>
-                <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-bold uppercase mb-4">Cuenta de Cliente</span>
               </div>
               
               <h2 className="text-xl font-extrabold text-[#1b3b2c]">{perfil?.nombre || 'Cargando...'}</h2>
