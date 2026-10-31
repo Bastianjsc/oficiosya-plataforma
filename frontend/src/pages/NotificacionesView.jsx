@@ -13,7 +13,7 @@ const NotificacionesView = () => {
   const cargarNotificaciones = useCallback(async () => {
     if (!token) return navigate('/login');
     try {
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/auth/notificaciones', { 
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/notificaciones`, { 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
       const data = await res.json();
@@ -64,7 +64,7 @@ const NotificacionesView = () => {
     if (!window.confirm(`¿Estás seguro de eliminar ${seleccionadas.length} notificaciones permanentemente?`)) return;
 
     try {
-      await fetch('${import.meta.env.VITE_API_URL}/api/auth/notificaciones/masa', {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/notificaciones/masa`, {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ids: seleccionadas })

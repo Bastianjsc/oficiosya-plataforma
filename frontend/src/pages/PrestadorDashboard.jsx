@@ -53,8 +53,8 @@ const PrestadorDashboard = () => {
     if (!token) return navigate('/login');
 
     Promise.all([
-      fetch('${import.meta.env.VITE_API_URL}/api/auth/perfil', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()),
-      fetch('${import.meta.env.VITE_API_URL}/api/marketplace/solicitudes/prestador', { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
+      fetch(`${import.meta.env.VITE_API_URL}/api/auth/perfil`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json()),
+      fetch(`${import.meta.env.VITE_API_URL}/api/marketplace/solicitudes/prestador`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
     ])
     .then(([dataPerfil, dataSolicitudes]) => {
       if (dataPerfil.success) {
@@ -131,7 +131,7 @@ const PrestadorDashboard = () => {
     dataToSend.append('localesFisicos', JSON.stringify(formData.localesFisicos));
 
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/auth/perfil', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: dataToSend });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/perfil`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: dataToSend });
       const data = await response.json();
       if (response.ok && data.success) {
         setPrestador(data.usuario);

@@ -63,7 +63,7 @@ const PrestadorPublicoView = () => {
 
     setEnviando(true);
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/marketplace/solicitudes', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/marketplace/solicitudes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

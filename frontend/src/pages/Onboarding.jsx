@@ -108,7 +108,7 @@ const Onboarding = () => {
     if (fotoArchivo) dataToSend.append('fotoPerfil', fotoArchivo);
 
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/auth/perfil', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: dataToSend });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/perfil`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: dataToSend });
       const data = await response.json();
       if (response.ok && data.success) {
         setMensaje({ texto: '¡Ficha creada! Pasemos a la verificación.', tipo: 'success' }); // <-- TEXTO ACTUALIZADO
@@ -157,7 +157,7 @@ const Onboarding = () => {
     archivosLegales.antecedentes.forEach(file => formDocs.append('antecedentes', file));
 
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/auth/verify-upload', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formDocs });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/verify-upload`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formDocs });
       const data = await response.json();
       if (response.ok && data.success) {
         setMensaje({ texto: '¡Proceso completado! Bienvenido a tu panel de control.', tipo: 'success' });
