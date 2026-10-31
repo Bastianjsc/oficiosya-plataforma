@@ -105,26 +105,22 @@ const ClienteDashboard = () => {
             <div className="flex flex-col items-center text-center">
               
               {/* Contenedor seguro para la foto de perfil del cliente */}
-              <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-[#1b3b2c] overflow-hidden mb-4 relative shadow-sm">
-                {perfil?.fotoPerfil ? (
-                  <img 
-                    src={perfil.fotoPerfil.startsWith('http') ? perfil.fotoPerfil : `${import.meta.env.VITE_API_URL}/${perfil.fotoPerfil}`} 
-                    alt="Perfil Cliente" 
-                    className="absolute inset-0 w-full h-full object-cover" 
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center font-extrabold text-3xl text-[#1b3b2c] bg-[#e8c582]">
-                    {perfil?.nombre ? perfil.nombre.charAt(0).toUpperCase() : 'C'}
-                  </div>
-                )}
+              <div className="flex flex-col items-center text-center">
+                <FotoPerfilEditor 
+                  perfil={perfil} 
+                  onActualizar={cargarDatos} 
+                  tema="oscuro" 
+                  tamaño="grande" 
+                />
+                <h2 className="text-xl font-extrabold text-[#1b3b2c] mt-4">{perfil?.nombre}</h2>
+                <p className="text-sm text-gray-500 font-bold mb-4">{perfil?.email}</p>
+                <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-bold uppercase mb-4">Cuenta de Cliente</span>
               </div>
               
               <h2 className="text-xl font-extrabold text-[#1b3b2c]">{perfil?.nombre || 'Cargando...'}</h2>
               <p className="text-sm text-gray-500 font-bold mb-3">{perfil?.email}</p>
               
               <div className="w-full bg-gray-50 p-3 rounded-md border border-gray-100 mb-4 text-left space-y-1">
-                <p className="text-xs text-gray-500 font-bold">📍 Comuna: <span className="text-[#1b3b2c]">{perfil?.comuna || 'No especificada'}</span></p>
-                <p className="text-xs text-gray-500 font-bold">📞 Teléfono: <span className="text-[#1b3b2c]">{perfil?.telefono || 'No registrado'}</span></p>
               </div>
 
               <span className="bg-[#1b3b2c] text-[#e8c582] px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4 shadow-sm">Cuenta de Cliente</span>
