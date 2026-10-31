@@ -1,5 +1,5 @@
 const Solicitud = require('../models/solicitud.model');
-const User = require('../models/user.model');
+const User = require('../models/User.model');
 
 // Función de ayuda para enviar notificaciones
 const notificar = async (usuarioId, texto, ruta) => {

@@ -1,4 +1,4 @@
-const User = require('../models/user.model');
+const User = require('../models/User.model');
 const Solicitud = require('../models/solicitud.model'); // Ya estaba importado para las notificaciones
 const jwt = require('jsonwebtoken');
 

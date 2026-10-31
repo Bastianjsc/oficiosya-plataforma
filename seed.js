@@ -1,7 +1,7 @@
 // backend/seed.js
 const mongoose = require('mongoose');
 require('dotenv').config();
-const User = require('./src/models/user.model'); 
+const User = require('./src/models/User.model'); 
 const Solicitud = require('./src/models/solicitud.model'); // Añadimos el modelo de solicitudes
 
 const comunasRM = [
