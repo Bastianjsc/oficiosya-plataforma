@@ -104,22 +104,16 @@ const ClienteDashboard = () => {
           <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 sticky top-8">
             <div className="flex flex-col items-center text-center">
               
-              {/* Contenedor seguro para la foto de perfil del cliente */}
-              <div className="flex flex-col items-center text-center">
-                <FotoPerfilEditor 
-                  perfil={perfil} 
-                  onActualizar={cargarDatos} 
-                  tema="oscuro" 
-                  tamaño="grande" 
-                />
-              </div>
+              <FotoPerfilEditor 
+                perfil={perfil} 
+                onActualizar={cargarDatos} 
+                tema="oscuro" 
+                tamaño="grande" 
+              />
               
-              <h2 className="text-xl font-extrabold text-[#1b3b2c]">{perfil?.nombre || 'Cargando...'}</h2>
-              <p className="text-sm text-gray-500 font-bold mb-3">{perfil?.email}</p>
+              <h2 className="text-xl font-extrabold text-[#1b3b2c] mt-4">{perfil?.nombre || 'Cargando...'}</h2>
+              <p className="text-sm text-gray-500 font-bold mb-4">{perfil?.email}</p>
               
-              <div className="w-full bg-gray-50 p-3 rounded-md border border-gray-100 mb-4 text-left space-y-1">
-              </div>
-
               <span className="bg-[#1b3b2c] text-[#e8c582] px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4 shadow-sm">Cuenta de Cliente</span>
             </div>
             
