@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-1">
             <h2 className="text-2xl font-extrabold text-[#e8c582] mb-4">OficiosYa</h2>
             <p className="text-sm text-gray-300 leading-relaxed mb-6">
-              La red de profesionales técnicos más confiable de la Región Metropolitana. Conectamos talento local con quienes lo necesitan, ya sea a domicilio o en sucursales físicas.
+              La red de profesionales más confiable de la Región Metropolitana. Conectamos talento local con quienes lo necesitan, ya sea a domicilio o en sucursales físicas.
             </p>
           </div>
 
