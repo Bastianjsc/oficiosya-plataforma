@@ -34,15 +34,23 @@ const NotificacionesView = () => {
   }, [cargarNotificaciones]);
 
   // --- NUEVA FUNCIÓN PARA MARCAR AL HOVER ---
-  const marcarComoLeida = async (id) => {
-    const notif = notificaciones.find(n => n._id === id);
-    if (notif && !notif.leida) {
-      setNotificaciones(prev => prev.map(n => n._id === id ? { ...n, leida: true } : n));
-      try {
-        await fetch(`${import.meta.env.VITE_API_URL}/api/auth/notificaciones/${id}/leer`, {
-          method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
-        });
-      } catch(e) { console.error(e); }
+const marcarComoLeida = async (id, yaEstaLeida) => {
+    // 1. Validamos usando el dato en tiempo real de la fila para evitar errores de renderizado
+    if (yaEstaLeida) return; 
+
+    // 2. Forzamos la actualización de la interfaz de inmediato
+    setNotificaciones(prevNotificaciones => 
+      prevNotificaciones.map(n => n._id === id ? { ...n, leida: true } : n)
+    );
+
+    // 3. Enviamos el cambio al servidor en segundo plano
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/notificaciones/${id}/leer`, {
+        method: 'PATCH', 
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch(e) { 
+      console.error("Error al actualizar estado en la base de datos:", e); 
     }
   };
 
@@ -129,8 +137,12 @@ const NotificacionesView = () => {
                   {notificaciones.map(n => (
                     <tr 
                       key={n._id} 
-                      onMouseEnter={() => marcarComoLeida(n._id)}
-                      className={`border-b border-gray-200 hover:bg-gray-100 transition-colors cursor-default ${n.leida ? 'text-gray-500 bg-gray-50' : 'text-[#1b3b2c] font-bold bg-white border-l-4 border-l-[#e8c582]'}`}
+                      onMouseEnter={() => marcarComoLeida(n._id, n.leida)}
+                      className={`border-b border-gray-200 transition-colors ${
+                        n.leida 
+                          ? 'text-gray-500 bg-gray-50 hover:bg-gray-100' 
+                          : 'text-[#1b3b2c] font-bold bg-white hover:bg-gray-50 border-l-4 border-l-[#e8c582]'
+                      }`}
                     >
                       <td className="p-4 text-center">
                         <input type="checkbox" onChange={() => handleSelectOne(n._id)} checked={seleccionadas.includes(n._id)} className="w-4 h-4 cursor-pointer accent-[#1b3b2c]"/>
