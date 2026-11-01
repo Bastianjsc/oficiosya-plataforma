@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable'; // <-- CAMBIO CLAVE: Importación directa
 
 export const generarEvidenciaPDF = (solicitud) => {
   try {
@@ -15,7 +15,7 @@ export const generarEvidenciaPDF = (solicitud) => {
     doc.text(`Prestador: ${solicitud.prestador?.nombre || 'No registrado'}`, 14, 37);
     doc.text(`Fecha: ${new Date(solicitud.createdAt).toLocaleDateString()}`, 14, 44);
 
-    // Detalles (Esto es lo que insertamos en el paso anterior)
+    // Detalles del servicio
     const detalles = solicitud.presupuesto?.mensajePrestador || 'Sin detalles adicionales.';
     doc.text("Detalles del Servicio:", 14, 54);
     doc.setFontSize(10);
@@ -24,9 +24,10 @@ export const generarEvidenciaPDF = (solicitud) => {
     const splitText = doc.splitTextToSize(detalles, 180);
     doc.text(splitText, 14, 60);
 
-    // Montos
+    // Montos - CAMBIO CLAVE: Se usa la función autoTable pasándole el 'doc'
     const offsetY = 60 + (splitText.length * 5) + 10;
-    doc.autoTable({
+    
+    autoTable(doc, {
       startY: offsetY,
       head: [['Concepto', 'Valor']],
       body: [
