@@ -31,7 +31,7 @@ const Navbar = () => {
     const fetchNotificaciones = async () => {
       if (!token) return;
       try {
-        const res = await fetch('${import.meta.env.VITE_API_URL}/api/auth/notificaciones', { headers: { 'Authorization': `Bearer ${token}` } });
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/notificaciones`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) setNotificaciones(data.notificaciones);
       } catch (e) { console.error(e); }
