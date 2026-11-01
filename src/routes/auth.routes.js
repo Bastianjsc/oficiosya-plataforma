@@ -17,8 +17,9 @@ const {
     marcarNotificacionLeida,
     eliminarNotificacion,
     eliminarNotificacionesEnMasa,
-    solicitarRecuperacion,    // <-- NUEVA IMPORTACIÓN
-    restablecerPassword       // <-- NUEVA IMPORTACIÓN
+    solicitarRecuperacion,   
+    restablecerPassword,
+    revocarVerificacion
 } = require('../controllers/auth.controller');
 
 const { verificarToken } = require('../middlewares/auth.middleware');
@@ -61,6 +62,9 @@ router.post('/verify-upload',
 
 // Ruta de administración para otorgar el Sello de Confianza
 router.patch('/users/:id/verify', verificarToken, verificarPrestadorAdmin);
+
+// Ruta para revocar la insignia y rechazar documentos
+router.patch('/users/:id/revoke', verificarToken, revocarVerificacion);
 
 // Ruta para eliminar cuentas (Solo Admin)
 router.delete('/users/:id', verificarToken, eliminarUsuarioAdmin);

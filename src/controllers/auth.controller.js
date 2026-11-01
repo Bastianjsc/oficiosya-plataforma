@@ -430,10 +430,41 @@ const restablecerPassword = async (req, res) => {
     }
 };
 
+const revocarVerificacion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Importante: Asegúrate de tener importado tu modelo User al inicio del archivo
+    const usuario = await User.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    // 1. Quitamos la insignia de verificado
+    usuario.isVerified = false;
+    // 2. Vaciamos el arreglo de documentos para forzarlo a subir nuevos
+    usuario.documentosIdentidad = []; 
+
+    // Guardamos los cambios en MongoDB Atlas
+    await usuario.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Verificación revocada y documentos eliminados correctamente.', 
+      usuario 
+    });
+
+  } catch (error) {
+    console.error('Error al revocar verificación:', error);
+    res.status(500).json({ success: false, message: 'Error del servidor al revocar verificación' });
+  }
+};
+
 module.exports = {
     registrarUsuario, loginUsuario, obtenerUsuarios, obtenerPerfilActual, uploadDocumentos,
     verificarPrestadorAdmin, eliminarUsuarioAdmin, actualizarPerfilPrestador,
-    obtenerPrestadoresPublicos, obtenerPrestadorPorIdPublico,
+    obtenerPrestadoresPublicos, obtenerPrestadorPorIdPublico, revocarVerificacion,
     obtenerNotificaciones, marcarNotificacionLeida, eliminarNotificacion, eliminarNotificacionesEnMasa,
     solicitarRecuperacion, restablecerPassword
 };
