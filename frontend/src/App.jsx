@@ -6,6 +6,7 @@ import PrestadorPublicoView from './pages/PrestadorPublicoView';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
 import Onboarding from './pages/Onboarding';
+import FormularioDocumentos from './pages/FormularioDocumentos'; // <-- IMPORTACIÓN AÑADIDA
 import ClienteDashboard from './pages/ClienteDashboard';
 import PrestadorDashboard from './pages/PrestadorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -50,6 +51,7 @@ function App() {
             <Route path="/prestador" element={<PrestadorDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/documentos" element={<FormularioDocumentos />} /> {/* <-- NUEVA RUTA AÑADIDA */}
             <Route path="/notificaciones" element={<NotificacionesView />} />
           </Route>
         </Route>
