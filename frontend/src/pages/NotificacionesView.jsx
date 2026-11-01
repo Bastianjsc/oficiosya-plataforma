@@ -25,13 +25,26 @@ const NotificacionesView = () => {
     }
   }, [token, navigate]);
 
-// 2. Ejecutamos la función a través de un intermediario asíncrono
+  // 2. Ejecutamos la función a través de un intermediario asíncrono
   useEffect(() => { 
     const inicializar = async () => {
       await cargarNotificaciones();
     };
     inicializar();
   }, [cargarNotificaciones]);
+
+  // --- NUEVA FUNCIÓN PARA MARCAR AL HOVER ---
+  const marcarComoLeida = async (id) => {
+    const notif = notificaciones.find(n => n._id === id);
+    if (notif && !notif.leida) {
+      setNotificaciones(prev => prev.map(n => n._id === id ? { ...n, leida: true } : n));
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/auth/notificaciones/${id}/leer`, {
+          method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch(e) { console.error(e); }
+    }
+  };
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -114,11 +127,15 @@ const NotificacionesView = () => {
                 </thead>
                 <tbody>
                   {notificaciones.map(n => (
-                    <tr key={n._id} className={`border-b border-gray-200 hover:bg-white transition-colors ${n.leida ? 'text-gray-500' : 'text-[#1b3b2c] font-bold bg-white'}`}>
+                    <tr 
+                      key={n._id} 
+                      onMouseEnter={() => marcarComoLeida(n._id)}
+                      className={`border-b border-gray-200 hover:bg-gray-100 transition-colors cursor-default ${n.leida ? 'text-gray-500 bg-gray-50' : 'text-[#1b3b2c] font-bold bg-white border-l-4 border-l-[#e8c582]'}`}
+                    >
                       <td className="p-4 text-center">
                         <input type="checkbox" onChange={() => handleSelectOne(n._id)} checked={seleccionadas.includes(n._id)} className="w-4 h-4 cursor-pointer accent-[#1b3b2c]"/>
                       </td>
-                      <td className="p-4 text-sm">{n.texto} {n.leida ? '' : <span className="ml-2 inline-block w-2 h-2 bg-red-500 rounded-full"></span>}</td>
+                      <td className="p-4 text-sm">{n.texto} {n.leida ? '' : <span className="ml-2 inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}</td>
                       <td className="p-4 text-xs font-semibold">{formatearFecha(n.fecha)}</td>
                       <td className="p-4 text-center">
                         <button onClick={() => eliminarIndividual(n._id)} className="text-red-400 hover:text-red-700 transition-colors text-lg" title="Borrar para siempre">🗑️</button>
