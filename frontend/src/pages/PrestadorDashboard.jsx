@@ -486,15 +486,36 @@ const PrestadorDashboard = () => {
       {modalCotizacion && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center p-4 z-50">
           <div className="bg-white p-8 rounded-lg max-w-lg w-full relative">
-            <button onClick={() => setModalCotizacion(null)} className="absolute top-4 right-4 text-3xl font-bold">&times;</button>
-            <h3 className="text-2xl font-extrabold mb-6">Presupuesto Digital</h3>
+            <button onClick={() => setModalCotizacion(null)} className="absolute top-4 right-4 text-3xl font-bold hover:text-red-500">&times;</button>
+            <h3 className="text-2xl font-extrabold mb-6 text-[#1b3b2c]">Presupuesto Digital</h3>
             <form onSubmit={handleCotizar} className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-xs font-bold mb-2">Mano de Obra ($)</label><input type="number" value={formCotizacion.manoDeObra} onChange={e=>setFormCotizacion({...formCotizacion, manoDeObra: e.target.value})} className="w-full border px-4 py-2 rounded outline-none" required /></div>
-                <div><label className="block text-xs font-bold mb-2">Materiales ($)</label><input type="number" value={formCotizacion.materiales} onChange={e=>setFormCotizacion({...formCotizacion, materiales: e.target.value})} className="w-full border px-4 py-2 rounded outline-none" required /></div>
+              
+              {/* NUEVO CAMPO: Detalles del Servicio */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-2 uppercase">Detalles del Servicio / Condiciones</label>
+                <textarea 
+                  value={formCotizacion.mensajePrestador} 
+                  onChange={e => setFormCotizacion({...formCotizacion, mensajePrestador: e.target.value})} 
+                  className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-3 rounded-md outline-none focus:border-[#1b3b2c] resize-none text-sm" 
+                  rows="3" 
+                  placeholder="Describe el trabajo a realizar, repuestos incluidos, tiempos estimados..." 
+                  required 
+                />
               </div>
-              <div className="flex justify-end pt-4">
-                <button type="submit" disabled={procesando} className="px-6 py-2.5 rounded font-bold text-white bg-[#1b3b2c]">
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-2 uppercase">Mano de Obra ($)</label>
+                  <input type="number" min="0" value={formCotizacion.manoDeObra} onChange={e=>setFormCotizacion({...formCotizacion, manoDeObra: e.target.value})} className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-2.5 rounded-md outline-none focus:border-[#1b3b2c] text-sm font-semibold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-2 uppercase">Materiales ($)</label>
+                  <input type="number" min="0" value={formCotizacion.materiales} onChange={e=>setFormCotizacion({...formCotizacion, materiales: e.target.value})} className="w-full bg-[#f5f1ea] border border-gray-300 px-4 py-2.5 rounded-md outline-none focus:border-[#1b3b2c] text-sm font-semibold" required />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-gray-200 mt-2">
+                <button type="submit" disabled={procesando} className="px-6 py-3 rounded-md font-extrabold text-white bg-[#1b3b2c] shadow-md hover:bg-opacity-90 transition-all">
                   {procesando ? 'Enviando...' : 'Enviar Cotización'}
                 </button>
               </div>
