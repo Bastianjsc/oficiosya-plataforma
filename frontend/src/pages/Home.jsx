@@ -65,7 +65,7 @@ const Home = () => {
 
         <div className="max-w-5xl mx-auto w-full relative z-20 text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
-            Encuentra al profesional técnico <br className="hidden md:block" />
+            Encuentra al profesional <br className="hidden md:block" />
             <span className="text-[#e8c582]">ideal para tu proyecto</span>
           </h1>
           <p className="text-lg text-gray-300 mb-12 max-w-2xl mx-auto font-medium">
@@ -135,7 +135,7 @@ const Home = () => {
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl font-extrabold text-[#1b3b2c] mb-12">¿Cómo funciona OficiosYa?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="p-6"><div className="w-20 h-20 mx-auto bg-[#f5f1ea] rounded-full flex items-center justify-center text-4xl mb-6 shadow-sm border border-[#e8c582]">🔍</div><h3 className="text-xl font-extrabold text-[#1b3b2c] mb-3">Busca y Compara</h3><p className="text-gray-600 font-medium">Revisa perfiles, calificaciones y tarifas de profesionales técnicos cercanos a ti.</p></div>
+            <div className="p-6"><div className="w-20 h-20 mx-auto bg-[#f5f1ea] rounded-full flex items-center justify-center text-4xl mb-6 shadow-sm border border-[#e8c582]">🔍</div><h3 className="text-xl font-extrabold text-[#1b3b2c] mb-3">Busca y Compara</h3><p className="text-gray-600 font-medium">Revisa perfiles, calificaciones y tarifas de profesionales cercanos a ti.</p></div>
             <div className="p-6"><div className="w-20 h-20 mx-auto bg-[#f5f1ea] rounded-full flex items-center justify-center text-4xl mb-6 shadow-sm border border-[#e8c582]">💬</div><h3 className="text-xl font-extrabold text-[#1b3b2c] mb-3">Solicita Presupuesto</h3><p className="text-gray-600 font-medium">Envía los detalles de tu problema y recibe cotizaciones digitales detalladas.</p></div>
             <div className="p-6"><div className="w-20 h-20 mx-auto bg-[#f5f1ea] rounded-full flex items-center justify-center text-4xl mb-6 shadow-sm border border-[#e8c582]">⭐</div><h3 className="text-xl font-extrabold text-[#1b3b2c] mb-3">Evalúa el Servicio</h3><p className="text-gray-600 font-medium">Al finalizar, califica el trabajo para mantener nuestra comunidad segura y confiable.</p></div>
           </div>
@@ -144,8 +144,8 @@ const Home = () => {
 
       <section className="py-16 px-8 bg-[#e8c582] relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-extrabold text-[#1b3b2c] mb-4">¿Eres un profesional técnico?</h2>
-          <p className="text-lg text-[#1b3b2c] font-medium mb-8">Únete a nuestra plataforma, digitaliza tus presupuestos, añade la ubicación de tu taller en nuestro mapa y aumenta tu base de clientes hoy mismo.</p>
+          <h2 className="text-3xl font-extrabold text-[#1b3b2c] mb-4">¿Eres un profesional?</h2>
+          <p className="text-lg text-[#1b3b2c] font-medium mb-8">Únete a nuestra plataforma, digitaliza tus presupuestos, añade la ubicación de tu local en nuestro mapa y aumenta tu base de clientes hoy mismo.</p>
           <Link to="/registro" className="inline-block bg-[#1b3b2c] text-white font-extrabold py-3.5 px-8 rounded-lg shadow-lg hover:bg-opacity-90 transition-all text-lg">Crear mi perfil profesional</Link>
         </div>
       </section>
