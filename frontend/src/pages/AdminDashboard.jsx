@@ -62,6 +62,27 @@ const AdminDashboard = () => {
     } catch (error) { console.error('Error al conectar con el servidor', error); }
   };
 
+  const revocarVerificacion = async (id, nombre, estadoActual) => {
+    const accion = estadoActual ? 'revocar la insignia de' : 'rechazar los documentos de';
+    if (!window.confirm(`¿Confirmas que deseas ${accion} ${nombre}? Esto borrará sus documentos actuales y deberá subirlos de nuevo.`)) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/users/${id}/revoke`, { 
+        method: 'PATCH', 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        cargarDatos();
+      } else {
+        alert(data.message || `Error al ${accion}.`);
+      }
+    } catch (error) { 
+      console.error('Error al conectar con el servidor', error); 
+    }
+  };
+
   const eliminarCuenta = async (id, nombre) => {
     if (!window.confirm(`¿Estás ABSOLUTAMENTE seguro de que deseas eliminar la cuenta de ${nombre}?`)) return;
 
@@ -183,7 +204,43 @@ const AdminDashboard = () => {
                           {u.rol === 'Prestador' ? (u.documentosIdentidad && u.documentosIdentidad.length > 0 ? <button onClick={() => setDocumentosModal(u.documentosIdentidad)} className="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded border border-indigo-200 shadow-sm">Ver Doc(s)</button> : <span className="text-xs text-red-600 font-bold bg-red-50 border border-red-200 px-2.5 py-1 rounded">Sin Docs</span>) : <span className="text-gray-300">-</span>}
                         </td>
                         <td className="p-4 text-center">
-                          {u.rol === 'Prestador' ? (u.isVerified ? <div className="inline-flex items-center justify-center bg-gray-100 rounded-full px-2 py-1 shadow-sm border border-gray-200"><InsigniaVerificada className="w-5 h-5" /></div> : <button onClick={() => aprobarPrestador(u._id)} disabled={!u.documentosIdentidad || u.documentosIdentidad.length === 0} className={`text-[11px] font-extrabold px-3 py-1.5 rounded shadow-sm uppercase ${u.documentosIdentidad && u.documentosIdentidad.length > 0 ? 'bg-[#1b3b2c] text-[#e8c582]' : 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300'}`}>Aprobar</button>) : <span className="text-gray-300">-</span>}
+                          {u.rol === 'Prestador' ? (
+                            <div className="flex flex-col items-center gap-2">
+                              {u.isVerified ? (
+                                <>
+                                  <div className="inline-flex items-center justify-center bg-gray-100 rounded-full px-2 py-1 shadow-sm border border-gray-200">
+                                    <InsigniaVerificada className="w-5 h-5" />
+                                  </div>
+                                  <button 
+                                    onClick={() => revocarVerificacion(u._id, u.nombre, true)} 
+                                    className="text-[10px] text-red-600 hover:text-red-800 font-bold underline"
+                                  >
+                                    Revocar
+                                 </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button 
+                                    onClick={() => aprobarPrestador(u._id)} 
+                                    disabled={!u.documentosIdentidad || u.documentosIdentidad.length === 0} 
+                                    className={`text-[11px] font-extrabold px-3 py-1.5 rounded shadow-sm uppercase ${u.documentosIdentidad && u.documentosIdentidad.length > 0 ? 'bg-[#1b3b2c] text-[#e8c582]' : 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300'}`}
+                                  >
+                                    Aprobar
+                                  </button>
+                                  {u.documentosIdentidad && u.documentosIdentidad.length > 0 && (
+                                    <button 
+                                      onClick={() => revocarVerificacion(u._id, u.nombre, false)} 
+                                      className="text-[10px] text-red-600 hover:text-red-800 font-bold underline mt-1"
+                                    >
+                                      Rechazar Docs
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-300">-</span>
+                          )}
                         </td>
                         <td className="p-4 text-center">
                           <button onClick={() => eliminarCuenta(u._id, u.nombre)} className="bg-white hover:bg-red-50 text-red-600 border border-red-200 text-[11px] uppercase tracking-wide font-extrabold px-3 py-1.5 rounded shadow-sm opacity-50 group-hover:opacity-100">Eliminar</button>
