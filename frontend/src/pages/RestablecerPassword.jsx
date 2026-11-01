@@ -31,7 +31,7 @@ const RestablecerPassword = () => {
     setMensaje({ texto: 'Actualizando contraseña...', tipo: 'info' });
 
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/auth/restablecer-password', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/restablecer-password`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify({ email, nuevaPassword: passwords.nueva })
       });

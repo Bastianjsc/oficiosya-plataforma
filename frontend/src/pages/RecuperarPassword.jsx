@@ -14,7 +14,7 @@ const RecuperarPassword = () => {
     setMensaje({ texto: 'Buscando cuenta...', tipo: 'info' });
 
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/auth/recuperar-password', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/recuperar-password`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email })
       });
       const data = await response.json();
