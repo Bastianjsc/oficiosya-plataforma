@@ -112,7 +112,7 @@ const PrestadorDashboard = () => {
         if (dataCalle.length > 0) handleMapCoords(index, parseFloat(dataCalle[0].lat), parseFloat(dataCalle[0].lon));
       }
     } catch (error) { 
-      console.error(error); // Corrección ESLint
+      console.error(error); 
       alert("Hubo un problema de conexión con el mapa."); 
     } finally { 
       setBuscandoMapa(false); 
@@ -139,7 +139,7 @@ const PrestadorDashboard = () => {
         setMensaje({ texto: 'Ficha comercial actualizada.', tipo: 'success' });
       } else { setMensaje({ texto: data.message || 'Error al actualizar.', tipo: 'error' }); }
     } catch (error) { 
-      console.error(error); // Corrección ESLint
+      console.error(error); 
       setMensaje({ texto: 'Error de conexión.', tipo: 'error' }); 
     }
   };
@@ -158,7 +158,7 @@ const PrestadorDashboard = () => {
       const data = await response.json();
       if (response.ok && data.success) { setModalCotizacion(null); cargarDatos(); } else { alert(data.message); }
     } catch (error) { 
-      console.error("Error al cotizar:", error); // Corrección ESLint
+      console.error("Error al cotizar:", error); 
     } finally { 
       setProcesando(false); 
     }
@@ -173,7 +173,7 @@ const PrestadorDashboard = () => {
       });
       if (response.ok) cargarDatos();
     } catch (error) { 
-      console.error("Error estado solicitud:", error); // Corrección ESLint
+      console.error("Error estado solicitud:", error); 
     }
   };
 
@@ -217,7 +217,17 @@ const PrestadorDashboard = () => {
                 Perfil Verificado <InsigniaVerificada className="w-5 h-5" />
               </span>
             ) : (
-              <span className="bg-yellow-100 text-yellow-800 font-extrabold px-5 py-2.5 rounded-full text-sm border border-yellow-300 shadow-sm">⏳ Pendiente de Auditoría</span>
+              <div className="flex items-center gap-3">
+                <span className="bg-yellow-100 text-yellow-800 font-extrabold px-5 py-2.5 rounded-full text-sm border border-yellow-300 shadow-sm">
+                  ⏳ Pendiente de Auditoría
+                </span>
+                <button 
+                  onClick={() => navigate('/documentos')} 
+                  className="bg-red-600 text-white text-sm font-extrabold px-5 py-2.5 rounded-full shadow-md hover:bg-red-700 transition-all border border-red-800"
+                >
+                  Subir Documentos Requeridos
+                </button>
+              </div>
             )}
           </div>
 
@@ -413,7 +423,8 @@ const PrestadorDashboard = () => {
               <select 
                 value={filtroEstadoSolicitud} 
                 onChange={(e) => setFiltroEstadoSolicitud(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm font-bold outline-none focus:border-[#1b3b2c]"
+                disabled={!prestador?.isVerified}
+                className={`bg-gray-50 border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm font-bold outline-none focus:border-[#1b3b2c] ${!prestador?.isVerified ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <option value="">Todos los Estados</option>
                 <option value="Pendiente">Pendiente</option>
@@ -424,30 +435,49 @@ const PrestadorDashboard = () => {
               </select>
 
               <div className="flex bg-gray-100 p-1.5 rounded">
-                <button onClick={() => setVistaSolicitudes('mosaico2')} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='mosaico2'?'bg-white shadow':''}`}>Grilla</button>
-                <button onClick={() => setVistaSolicitudes('lista')} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='lista'?'bg-white shadow':''}`}>Lista</button>
+                <button onClick={() => setVistaSolicitudes('mosaico2')} disabled={!prestador?.isVerified} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='mosaico2' && prestador?.isVerified ?'bg-white shadow':''} ${!prestador?.isVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>Grilla</button>
+                <button onClick={() => setVistaSolicitudes('lista')} disabled={!prestador?.isVerified} className={`px-4 py-1.5 rounded text-sm font-bold ${vistaSolicitudes==='lista' && prestador?.isVerified ?'bg-white shadow':''} ${!prestador?.isVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>Lista</button>
               </div>
             </div>
           </div>
           
-          {solicitudesMostradas.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed rounded"><p className="text-gray-600 font-bold">No hay solicitudes que coincidan con la búsqueda.</p></div>
-          ) : (
-            <div className={vistaSolicitudes === 'lista' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 gap-6'}>
-              {solicitudesMostradas.map(sol => (
-                <div key={sol._id} className="border rounded-lg p-5 bg-gray-50 flex flex-col h-full">
-                  <div className="flex justify-between mb-4">
-                    <div><h4 className="font-extrabold">{sol.cliente?.nombre}</h4><p className="text-xs text-gray-500">{formatearFecha(sol.createdAt)}</p></div>
-                    <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${getBadgeColor(sol.estado)}`}>{sol.estado}</span>
-                  </div>
-                  <div className="bg-white p-3.5 rounded border mb-4 flex-grow"><p className="text-sm">{sol.descripcionCliente}</p></div>
-                  <div className="flex gap-2 justify-end mt-auto pt-3 border-t">
-                    {sol.estado === 'Pendiente' && (<><button onClick={() => cambiarEstadoSolicitud(sol._id, 'Rechazado')} className="px-4 py-2 rounded text-xs font-bold text-red-600 bg-red-50 border border-red-200">Rechazar</button><button onClick={() => abrirModalCotizacion(sol)} className="px-4 py-2 rounded text-xs font-bold text-white bg-[#1b3b2c]">Cotizar</button></>)}
-                    {sol.estado === 'Aceptado' && <button onClick={() => cambiarEstadoSolicitud(sol._id, 'Finalizado')} className="w-full px-4 py-2.5 rounded text-sm font-bold text-white bg-green-600 border border-green-700">✓ Marcar como Finalizado</button>}
-                  </div>
-                </div>
-              ))}
+          {/* Lógica de Bloqueo de Bandeja */}
+          {!prestador?.isVerified ? (
+            <div className="text-center py-16 px-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+              <span className="text-5xl block mb-4">🔒</span>
+              <h3 className="text-xl font-extrabold text-[#1b3b2c] mb-2">Bandeja Bloqueada</h3>
+              <p className="text-gray-600 font-medium max-w-md mx-auto mb-6">
+                Por políticas de seguridad, no puedes recibir ni gestionar solicitudes de trabajo hasta que tu perfil sea auditado y verificado por un administrador.
+              </p>
+              <button 
+                onClick={() => navigate('/documentos')} 
+                className="bg-[#1b3b2c] text-[#e8c582] text-sm font-extrabold px-6 py-3 rounded shadow-md hover:bg-opacity-90 transition-all"
+              >
+                Completar Verificación Ahora
+              </button>
             </div>
+          ) : (
+            <>
+              {solicitudesMostradas.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded"><p className="text-gray-600 font-bold">No hay solicitudes que coincidan con la búsqueda.</p></div>
+              ) : (
+                <div className={vistaSolicitudes === 'lista' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 gap-6'}>
+                  {solicitudesMostradas.map(sol => (
+                    <div key={sol._id} className="border rounded-lg p-5 bg-gray-50 flex flex-col h-full">
+                      <div className="flex justify-between mb-4">
+                        <div><h4 className="font-extrabold">{sol.cliente?.nombre}</h4><p className="text-xs text-gray-500">{formatearFecha(sol.createdAt)}</p></div>
+                        <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${getBadgeColor(sol.estado)}`}>{sol.estado}</span>
+                      </div>
+                      <div className="bg-white p-3.5 rounded border mb-4 flex-grow"><p className="text-sm">{sol.descripcionCliente}</p></div>
+                      <div className="flex gap-2 justify-end mt-auto pt-3 border-t">
+                        {sol.estado === 'Pendiente' && (<><button onClick={() => cambiarEstadoSolicitud(sol._id, 'Rechazado')} className="px-4 py-2 rounded text-xs font-bold text-red-600 bg-red-50 border border-red-200">Rechazar</button><button onClick={() => abrirModalCotizacion(sol)} className="px-4 py-2 rounded text-xs font-bold text-white bg-[#1b3b2c]">Cotizar</button></>)}
+                        {sol.estado === 'Aceptado' && <button onClick={() => cambiarEstadoSolicitud(sol._id, 'Finalizado')} className="w-full px-4 py-2.5 rounded text-sm font-bold text-white bg-green-600 border border-green-700">✓ Marcar como Finalizado</button>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
